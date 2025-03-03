@@ -36,14 +36,9 @@ export async function getAuthenticatedUser() {
 
 export async function getBooks() {
   try {
-    const token = localStorage.getItem('token'); // Récupère le token
-    console.log("Token récupéré :", localStorage.getItem('token')); // vérification du stockage
     const response = await axios({
       method: 'GET',
       url: `${API_ROUTES.BOOKS}`,
-      headers: { // header rajouté
-        Authorization: `Bearer ${token}`,
-      },
     });
     // eslint-disable-next-line array-callback-return
     const books = formatBooks(response.data);
@@ -56,13 +51,9 @@ export async function getBooks() {
 
 export async function getBook(id) {
   try {
-    const token = localStorage.getItem('token');
     const response = await axios({
       method: 'GET',
       url: `${API_ROUTES.BOOKS}/${id}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
     const book = response.data;
     // eslint-disable-next-line no-underscore-dangle

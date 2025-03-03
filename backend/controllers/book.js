@@ -93,37 +93,45 @@ exports.getAllBooks = (req, res, next) => {
 
 exports.rateBook = async (req, res) => {
     try {
-        const { grade } = req.body;
-        const userId = req.auth.userId; // Récupération de l'ID de l'utilisateur connecté
-        const bookId = req.params.id;
+        console.log("📥 Requête reçue :", req.body, "Params:", req.params);
+        
+        const { rating, userId } = req.body; // Le frontend envoie "rating" et "userId"
+        const bookId = req.params.id; // 🔥 Vérifier si l'ID du livre est bien transmis
 
-        // Vérifier si la note est bien entre 0 et 5
-        if (grade < 0 || grade > 5) {
-            return res.status(400).json({ message: "La note doit être comprise entre 0 et 5." });
+        if (!bookId) {
+            console.error("❌ Erreur : ID du livre manquant !");
+            return res.status(400).json({ message: "ID du livre manquant dans la requête" });
         }
 
-        // Récupérer le livre concerné
+        if (!rating) {
+            console.error("❌ Erreur : Note manquante !");
+            return res.status(400).json({ message: "Note (rating) manquante dans la requête" });
+        }
+
+        if (!userId) {
+            console.error("❌ Erreur : User ID manquant !");
+            return res.status(400).json({ message: "User ID manquant dans la requête" });
+        }
+
         const book = await Book.findById(bookId);
         if (!book) {
             return res.status(404).json({ message: "Livre non trouvé." });
         }
 
         // Vérifier si l'utilisateur a déjà noté ce livre
-        const existingRating = book.ratings.find(r => r.userId === userId);
+        const existingRating = book.ratings.find(r => r.userId.toString() === userId);
         if (existingRating) {
             return res.status(400).json({ message: "Vous avez déjà noté ce livre." });
         }
 
-        // Ajouter la nouvelle note
-        book.ratings.push({ userId, grade });
+        // Ajouter la nouvelle note (transformer "rating" en "grade")
+        book.ratings.push({ userId, grade: Number(rating) });
 
-        // Recalculer la moyenne des notes
+        // Recalculer la moyenne
         const total = book.ratings.reduce((sum, r) => sum + r.grade, 0);
-        book.averageRating = total / book.ratings.length;
+        book.averageRating = Number((total / book.ratings.length).toFixed(1));
 
-        // Sauvegarder les modifications
         await book.save();
-
         res.status(201).json({ message: "Note ajoutée avec succès !", book });
 
     } catch (error) {

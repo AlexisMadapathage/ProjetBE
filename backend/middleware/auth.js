@@ -19,7 +19,7 @@ module.exports = (req, res, next) => {
 
         next();
     } catch (error) {
-        console.error("❌ Erreur d'authentification :", error.message);
+        console.error("Erreur d'authentification :", error.message);
         return res.status(401).json({ message: "Token invalide ou expiré." });
     }
 };

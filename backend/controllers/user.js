@@ -33,7 +33,7 @@ exports.login = (req, res, next) => {
                         userId: user._id,
                         token: jwt.sign(
                         { userId: user._id },
-                        process.env.JWT_SECRET, // Récupère la clé depuis .env 
+                        process.env.JWT_SECRET, 
                         { expiresIn : '24h' }
                         )
                     });

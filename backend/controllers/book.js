@@ -3,8 +3,6 @@ const fs = require('fs');
 
 exports.createBook = async (req, res, next) => {
     try {
-        console.log("Requête reçue :", req.body, req.file);
-        
         // Vérifie si les données sont envoyées sous forme de JSON stringifié (`book`)
         if (!req.body.book) {
             return res.status(400).json({ message: "Données manquantes dans la requête" });
@@ -18,17 +16,11 @@ exports.createBook = async (req, res, next) => {
             return res.status(400).json({ message: "Image requise" });
         }
 
-        // 🔥 Remplace `year` par `publishDate`
-        bookObject.publishDate = bookObject.year; 
-        delete bookObject.year; // Supprime `year` pour éviter des conflits
-
           const book = new Book({
             ...bookObject,
             userId: req.auth.userId,
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         });
-
-        console.log("Livre prêt à être enregistré :", book);
 
         await book.save();
 
@@ -93,8 +85,6 @@ exports.getAllBooks = (req, res, next) => {
 
 exports.rateBook = async (req, res) => {
     try {
-        console.log("Requête reçue :", req.body, "Params:", req.params);
-        
         const { rating, userId } = req.body; // Le frontend envoie "rating" et "userId"
         const bookId = req.params.id; // Vérifie si l'ID du livre est bien transmis
 
@@ -118,16 +108,16 @@ exports.rateBook = async (req, res) => {
             return res.status(404).json({ message: "Livre non trouvé." });
         }
 
-        // Vérifier si l'utilisateur a déjà noté ce livre
+        // Vérifie si l'utilisateur a déjà noté ce livre
         const existingRating = book.ratings.find(r => r.userId.toString() === userId);
         if (existingRating) {
             return res.status(400).json({ message: "Vous avez déjà noté ce livre." });
         }
 
-        // Ajouter la nouvelle note (transformer "rating" en "grade")
+        // Ajoute la nouvelle note (transformer "rating" en "grade")
         book.ratings.push({ userId, grade: Number(rating) });
 
-        // Recalculer la moyenne
+        // Recalcule la moyenne
         const total = book.ratings.reduce((sum, r) => sum + r.grade, 0);
         book.averageRating = Number((total / book.ratings.length).toFixed(1));
 
@@ -149,4 +139,3 @@ exports.getBestRatedBooks = async (req, res) => {
       res.status(500).json({ message: "Erreur serveur." });
     }
   };
-  

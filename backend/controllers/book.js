@@ -3,7 +3,7 @@ const fs = require('fs');
 
 exports.createBook = async (req, res, next) => {
     try {
-        console.log("📥 Requête reçue :", req.body, req.file);
+        console.log("Requête reçue :", req.body, req.file);
         
         // Vérifie si les données sont envoyées sous forme de JSON stringifié (`book`)
         if (!req.body.book) {
@@ -28,14 +28,14 @@ exports.createBook = async (req, res, next) => {
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         });
 
-        console.log("📄 Livre prêt à être enregistré :", book);
+        console.log("Livre prêt à être enregistré :", book);
 
         await book.save();
 
         res.status(201).json({ message: 'Livre enregistré !' });
 
     } catch (error) {
-        console.error("❌ Erreur lors de la création du livre :", error);
+        console.error("Erreur lors de la création du livre :", error);
         res.status(400).json({ message: "Erreur lors de l'enregistrement en base de données", error });
     }
 };
@@ -93,23 +93,23 @@ exports.getAllBooks = (req, res, next) => {
 
 exports.rateBook = async (req, res) => {
     try {
-        console.log("📥 Requête reçue :", req.body, "Params:", req.params);
+        console.log("Requête reçue :", req.body, "Params:", req.params);
         
         const { rating, userId } = req.body; // Le frontend envoie "rating" et "userId"
-        const bookId = req.params.id; // 🔥 Vérifier si l'ID du livre est bien transmis
+        const bookId = req.params.id; // Vérifie si l'ID du livre est bien transmis
 
         if (!bookId) {
-            console.error("❌ Erreur : ID du livre manquant !");
+            console.error("Erreur : ID du livre manquant !");
             return res.status(400).json({ message: "ID du livre manquant dans la requête" });
         }
 
         if (!rating) {
-            console.error("❌ Erreur : Note manquante !");
+            console.error("Erreur : Note manquante !");
             return res.status(400).json({ message: "Note (rating) manquante dans la requête" });
         }
 
         if (!userId) {
-            console.error("❌ Erreur : User ID manquant !");
+            console.error("Erreur : User ID manquant !");
             return res.status(400).json({ message: "User ID manquant dans la requête" });
         }
 
@@ -135,7 +135,18 @@ exports.rateBook = async (req, res) => {
         res.status(201).json({ message: "Note ajoutée avec succès !", book });
 
     } catch (error) {
-        console.error("❌ Erreur lors de l'ajout de la note :", error);
+        console.error("Erreur lors de l'ajout de la note :", error);
         res.status(500).json({ error: "Une erreur est survenue." });
     }
 };
+
+exports.getBestRatedBooks = async (req, res) => {
+    try {
+      const books = await Book.find().sort({ averageRating: -1 }).limit(3);
+      res.status(200).json(books);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des livres les mieux notés :", error);
+      res.status(500).json({ message: "Erreur serveur." });
+    }
+  };
+  
